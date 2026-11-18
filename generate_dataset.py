@@ -1,6 +1,7 @@
 import random
 import pandas as pd
 from datetime import datetime, timedelta
+from collections import Counter
 
 random.seed(42)
 
@@ -48,6 +49,8 @@ TARGET_CATEGORIES = [
     "valuables",
     "multiple_categories"
 ]
+
+SERIES_SIZES = [3] * 8 + [5] * 12 + [8] * 10 + [12] * 6 + [21] * 4
 
 def generate_offender_profiles(num_offenders):
     profiles = {}
@@ -114,8 +117,8 @@ def generate_linked_incidents(profiles, start_date):
     incidents = []
     case_number = 1
 
-    for offender_id, profile in profiles.items():
-        for _ in range(8):
+    for index, (offender_id, profile) in enumerate(profiles.items()):
+        for _ in range(SERIES_SIZES[index]):
             case_id = f"C{case_number:03d}"
 
             incident = generate_incident(
@@ -215,7 +218,9 @@ if __name__ == "__main__":
     assert dataset["case_id"].is_unique
 
     distribution = dataset["offender_id"].value_counts().value_counts().to_dict()
-    assert distribution == {1: 130, 8: 40}
+    ctr = Counter(SERIES_SIZES)
+    ctr.update({1: NUM_INCIDENTS - sum(SERIES_SIZES)})
+    assert distribution == ctr
 
     assert dataset[["case_id", "offender_id", "date_time"]].notnull().all().all()
 
