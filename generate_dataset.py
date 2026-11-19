@@ -52,11 +52,12 @@ TARGET_CATEGORIES = [
 
 SERIES_SIZES = [3] * 8 + [5] * 12 + [8] * 10 + [12] * 6 + [21] * 4
 
-def generate_offender_profiles(num_offenders):
+def generate_offender_profiles(num_offenders, start_date):
     profiles = {}
 
     for offender_number in range(1, num_offenders + 1):
         offender_id = f"O{offender_number:03d}"
+        activity_duration = random.randint(30, 180)
 
         profiles[offender_id] = {
             "property_type": random.choice(PROPERTY_TYPES),
@@ -65,7 +66,9 @@ def generate_offender_profiles(num_offenders):
             "target_category": random.choice(TARGET_CATEGORIES),
             "base_x": random.uniform(0, 100),
             "base_y": random.uniform(0, 100),
-            "preferred_hour": random.randint(0, 23)
+            "preferred_hour": random.randint(0, 23),
+            "activity_start": start_date + timedelta(days=random.randint(0, 364 - activity_duration)),
+            "activity_duration": activity_duration
         }
 
     return profiles
@@ -76,9 +79,9 @@ def choose_characteristic(preferred_value, possible_values, consistency=0.7):
     else:
         return random.choice(possible_values)
 
-def generate_incident(case_id, offender_id, profile, start_date):
-    incident_date = start_date + timedelta(
-        days=random.randint(0, 364)
+def generate_incident(case_id, offender_id, profile):
+    incident_date = profile["activity_start"] + timedelta(
+        days=random.randint(0, profile["activity_duration"])
     )
 
     incident_hour = int(random.gauss(profile["preferred_hour"], 2))
@@ -113,7 +116,7 @@ def generate_incident(case_id, offender_id, profile, start_date):
         )
     }
 
-def generate_linked_incidents(profiles, start_date):
+def generate_linked_incidents(profiles):
     incidents = []
     case_number = 1
 
@@ -124,8 +127,7 @@ def generate_linked_incidents(profiles, start_date):
             incident = generate_incident(
                 case_id,
                 offender_id,
-                profile,
-                start_date
+                profile
             )
 
             incidents.append(incident)
@@ -167,10 +169,10 @@ def generate_unlinked_incidents(num_incidents, start_date, start_case_number):
 def generate_dataset():
     start_date = datetime(2025, 1, 1)
 
-    profiles = generate_offender_profiles(NUM_OFFENDERS)
+    profiles = generate_offender_profiles(NUM_OFFENDERS, start_date)
 
     linked_incidents = generate_linked_incidents(
-        profiles, start_date
+        profiles
     )
 
     num_unlinked = NUM_INCIDENTS - len(linked_incidents)
@@ -229,6 +231,9 @@ if __name__ == "__main__":
     assert dataset["location_y"].min() >= 0
     assert dataset["location_y"].max() <= 100
 
+    assert dataset["date_time"].min() >= datetime(2025, 1, 1)
+    assert dataset["date_time"].max() < datetime(2026, 1, 1)
+
     print("All dataset validation checks passed!")
 
     dataset.to_csv("burglary_incidents.csv", index=False)
@@ -247,3 +252,4 @@ if __name__ == "__main__":
     print("\nCoordinate ranges:")
     print("X:", dataset["location_x"].min(), "to", dataset["location_x"].max())
     print("Y:", dataset["location_y"].min(), "to", dataset["location_y"].max())
+
