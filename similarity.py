@@ -101,3 +101,19 @@ def equal_weight_similarity(scores):
         return sum(filtered_scores) / len(filtered_scores)
     return None
 
+def weighted_similarity(scores):
+    weights = {
+        "behavioral": 0.20,
+        "spatial": 0.40,
+        "temporal": 0.40
+    }
+    filtered_scores = {key: val for key, val in scores.items() if val is not None}
+    if filtered_scores:
+        weighted_total = 0
+        available_weight = 0
+        for key, val in filtered_scores.items():
+            weighted_total += val * weights[key]
+            available_weight += weights[key]
+        return weighted_total / available_weight
+    return None
+
