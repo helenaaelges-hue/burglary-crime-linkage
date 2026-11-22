@@ -98,3 +98,7 @@ print(df["date_time"].describe())
 print(df[df["offender_id"] == "O001"]["date_time"].sort_values())
 
 print(df[["location_x", "location_y"]].describe())
+
+df["date_time"] = pd.to_datetime(df["date_time"])
+print(df["date_time"].dtype)
+print(df["date_time"].head())
