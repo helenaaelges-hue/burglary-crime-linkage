@@ -4,14 +4,24 @@ from similarity import compare_incidents, equal_weight_similarity, weighted_simi
 df = pd.read_csv("burglary_incidents.csv")
 df["date_time"] = pd.to_datetime(df["date_time"])
 
-case_1 = df.iloc[0]
-case_2 = df.iloc[1]
+reference_case = df.iloc[0]
+results = []
 
-scores = compare_incidents(case_1, case_2)
+for index, candidate in df.iterrows():
+    if index == 0:
+        continue
+    scores = compare_incidents(reference_case, candidate)
+    equal_score = equal_weight_similarity(scores)
+    weighted_score = weighted_similarity(scores)
+    results.append(
+        {
+            "case_id": candidate["case_id"],
+            "equal_score": equal_score,
+            "weighted_score": weighted_score
+        }
+    )
 
-equal_score = equal_weight_similarity(scores)
-weighted_score = weighted_similarity(scores)
+equal_ranked = sorted(results, key=lambda x: x["equal_score"], reverse=True)
+weighted_ranked = sorted(results, key=lambda x: x["weighted_score"], reverse=True)
 
-print("Feature scores:", scores)
-print("Equal weight score:", equal_score)
-print("Weighted score:", weighted_score)
+print(weighted_ranked[:10])
