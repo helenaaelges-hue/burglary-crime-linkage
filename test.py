@@ -91,16 +91,6 @@ evaluation_df["f1_difference"] = (
 mean_f1_difference = evaluation_df["f1_difference"].mean()
 std_f1_difference = evaluation_df["f1_difference"].std()
 
-print("Equal-weight results")
-print("Precision@10:", mean_equal_precision)
-print("Recall@10:", mean_equal_recall)
-print("F1@10:", mean_equal_f1)
-
-print("\nWeighted results")
-print("Precision@10:", mean_weighted_precision)
-print("Recall@10:", mean_weighted_recall)
-print("F1@10:", mean_weighted_f1)
-
 std_equal_f1 = evaluation_df["equal_f1"].std()
 std_weighted_f1 = evaluation_df["weighted_f1"].std()
 

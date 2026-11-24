@@ -2,7 +2,7 @@ import math
 import pandas as pd
 
 def categorical_similarity(case_1, case_2):
-    if case_1 is None or case_2 is None:
+    if pd.isna(case_1) or pd.isna(case_2):
         return None
     if case_1 == case_2:
         return 1.0
