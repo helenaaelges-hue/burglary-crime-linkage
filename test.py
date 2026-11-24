@@ -91,10 +91,6 @@ evaluation_df["f1_difference"] = (
 mean_f1_difference = evaluation_df["f1_difference"].mean()
 std_f1_difference = evaluation_df["f1_difference"].std()
 
-equal_better_recall = (evaluation_df["recall_difference"] > 0).sum()
-weighted_better_recall = (evaluation_df["recall_difference"] < 0).sum()
-both_equal_recall = (evaluation_df["recall_difference"] == 0).sum()
-
 print("Equal-weight results")
 print("Precision@10:", mean_equal_precision)
 print("Recall@10:", mean_equal_recall)
@@ -113,3 +109,30 @@ std_equal_recall = evaluation_df["equal_recall"].std()
 
 std_weighted_precision = evaluation_df["weighted_precision"].std()
 std_weighted_recall = evaluation_df["weighted_recall"].std()
+
+print("\nStandard deviations")
+print("Equal-weight Precision@10:", std_equal_precision)
+print("Equal-weight Recall@10:", std_equal_recall)
+print("Equal-weight F1@10:", std_equal_f1)
+print("Weighted Precision@10:", std_weighted_precision)
+print("Weighted Recall@10:", std_weighted_recall)
+print("Weighted F1@10:", std_weighted_f1)
+
+print("\nPaired F1 difference (equal - weighted)")
+print("Mean F1 difference:", mean_f1_difference)
+print("Standard deviation of F1 difference:", std_f1_difference)
+
+print("\nF1 comparison across reference cases")
+equal_better_f1 = (evaluation_df["f1_difference"] > 0).sum()
+weighted_better_f1 = (evaluation_df["f1_difference"] < 0).sum()
+both_equal_f1 = (evaluation_df["f1_difference"] == 0).sum()
+
+print("Equal-weight performed better:", equal_better_f1)
+print("Weighted performed better:", weighted_better_f1)
+print("Both performed equally:", both_equal_f1)
+
+print("\nEvaluation overview")
+print("Number of reference cases:", len(reference_cases))
+print("Total incidents:", len(df))
+print("Candidates per reference case:", len(df) - 1)
+print("Average relevant cases per reference:", evaluation_df["reference_offender_id"].map(counts).sub(1).mean())
