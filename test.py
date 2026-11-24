@@ -17,6 +17,12 @@ def evaluate_ranking(ranked_cases, linked_cases):
 
     return precision, recall
 
+def calculate_f1(precision, recall):
+    if precision == 0 and recall == 0:
+        return 0.0
+    f1 = 2 * ((precision * recall) / (precision + recall))
+    return f1
+
 counts = df["offender_id"].value_counts()
 repeat_offenders = counts[counts > 1]
 repeat_offender_ids = repeat_offenders.index.tolist()
@@ -46,6 +52,9 @@ for reference_case in reference_cases:
     weighted_ranked = sorted(results, key=lambda x: x["weighted_score"], reverse=True)
     equal_precision, equal_recall = evaluate_ranking(equal_ranked, linked_cases)
     weighted_precision, weighted_recall = evaluate_ranking(weighted_ranked, linked_cases)
+    equal_f1 = calculate_f1(equal_precision, equal_recall)
+    weighted_f1 = calculate_f1(weighted_precision, weighted_recall)
+
     top_10_equal_case_ids = [case["case_id"] for case in equal_ranked[:10]]
     top_10_weighted_case_ids = [case["case_id"] for case in weighted_ranked[:10]]
     all_evaluations.append({
@@ -55,23 +64,52 @@ for reference_case in reference_cases:
         "reference_offender_id": reference_case["offender_id"],
         "equal_precision": equal_precision,
         "equal_recall": equal_recall,
+        "equal_f1": equal_f1,
         "weighted_precision": weighted_precision,
-        "weighted_recall": weighted_recall
+        "weighted_recall": weighted_recall,
+        "weighted_f1": weighted_f1
     })
 
 evaluation_df = pd.DataFrame(all_evaluations)
 mean_equal_precision = evaluation_df["equal_precision"].mean()
 mean_equal_recall = evaluation_df["equal_recall"].mean()
+mean_equal_f1 = evaluation_df["equal_f1"].mean()
 mean_weighted_precision = evaluation_df["weighted_precision"].mean()
 mean_weighted_recall = evaluation_df["weighted_recall"].mean()
+mean_weighted_f1 = evaluation_df["weighted_f1"].mean()
 
 evaluation_df["precision_difference"] = (
     evaluation_df["equal_precision"] - evaluation_df["weighted_precision"]
 )
-
 evaluation_df["recall_difference"] = (
     evaluation_df["equal_recall"] - evaluation_df["weighted_recall"]
 )
+evaluation_df["f1_difference"] = (
+    evaluation_df["equal_f1"] - evaluation_df["weighted_f1"]
+)
+
+mean_f1_difference = evaluation_df["f1_difference"].mean()
+std_f1_difference = evaluation_df["f1_difference"].std()
+
 equal_better_recall = (evaluation_df["recall_difference"] > 0).sum()
 weighted_better_recall = (evaluation_df["recall_difference"] < 0).sum()
 both_equal_recall = (evaluation_df["recall_difference"] == 0).sum()
+
+print("Equal-weight results")
+print("Precision@10:", mean_equal_precision)
+print("Recall@10:", mean_equal_recall)
+print("F1@10:", mean_equal_f1)
+
+print("\nWeighted results")
+print("Precision@10:", mean_weighted_precision)
+print("Recall@10:", mean_weighted_recall)
+print("F1@10:", mean_weighted_f1)
+
+std_equal_f1 = evaluation_df["equal_f1"].std()
+std_weighted_f1 = evaluation_df["weighted_f1"].std()
+
+std_equal_precision = evaluation_df["equal_precision"].std()
+std_equal_recall = evaluation_df["equal_recall"].std()
+
+std_weighted_precision = evaluation_df["weighted_precision"].std()
+std_weighted_recall = evaluation_df["weighted_recall"].std()
