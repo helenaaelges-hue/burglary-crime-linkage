@@ -28,8 +28,11 @@ repeat_offenders = counts[counts > 1]
 repeat_offender_ids = repeat_offenders.index.tolist()
 reference_cases = []
 for offender_id in repeat_offender_ids:
-    first_case = df[df["offender_id"] == offender_id].iloc[0]
-    reference_cases.append(first_case)
+    offender_cases = df[df["offender_id"] == offender_id]
+    earliest_case = offender_cases.sort_values(
+        ["date_time", "case_id"]
+    ).iloc[0]
+    reference_cases.append(earliest_case)
 
 all_evaluations = []
 for reference_case in reference_cases:
@@ -48,8 +51,8 @@ for reference_case in reference_cases:
                 "weighted_score": weighted_score
             }
         )
-    equal_ranked = sorted(results, key=lambda x: x["equal_score"], reverse=True)
-    weighted_ranked = sorted(results, key=lambda x: x["weighted_score"], reverse=True)
+    equal_ranked = sorted(results, key=lambda x: (-x["equal_score"], x["case_id"]))
+    weighted_ranked = sorted(results, key=lambda x: (-x["weighted_score"], x["case_id"]))
     equal_precision, equal_recall = evaluate_ranking(equal_ranked, linked_cases)
     weighted_precision, weighted_recall = evaluate_ranking(weighted_ranked, linked_cases)
     equal_f1 = calculate_f1(equal_precision, equal_recall)
@@ -99,6 +102,14 @@ std_equal_recall = evaluation_df["equal_recall"].std()
 
 std_weighted_precision = evaluation_df["weighted_precision"].std()
 std_weighted_recall = evaluation_df["weighted_recall"].std()
+
+print("\nMean evaluation results")
+print("Equal-weight Precision@10:", mean_equal_precision)
+print("Equal-weight Recall@10:", mean_equal_recall)
+print("Equal-weight F1@10:", mean_equal_f1)
+print("Weighted Precision@10:", mean_weighted_precision)
+print("Weighted Recall@10:", mean_weighted_recall)
+print("Weighted F1@10:", mean_weighted_f1)
 
 print("\nStandard deviations")
 print("Equal-weight Precision@10:", std_equal_precision)

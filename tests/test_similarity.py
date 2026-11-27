@@ -1,7 +1,5 @@
-import math
-import pandas as pd
-import pytest
 from datetime import datetime
+import math
 
 from similarity import (
     categorical_similarity,
@@ -195,3 +193,65 @@ def test_compare_incidents_returns_all_score_groups():
     assert result["behavioral"] == 1.0
     assert result["spatial"] == 1.0
     assert result["temporal"] == 1.0
+
+def test_behavioral_similarity_with_partially_missing_values():
+    case_1 = {
+        "property_type": "house",
+        "entry_point": "window",
+        "entry_method": None,
+        "target_category": None
+    }
+    case_2 = {
+        "property_type": "house",
+        "entry_point": "window",
+        "entry_method": "forced",
+        "target_category": "electronics"
+    }
+
+    assert behavioral_similarity(case_1, case_2) == 1.0
+
+
+def test_incident_spatial_similarity_missing_y_coordinate():
+    case_1 = {
+        "location_x": 10,
+        "location_y": None
+    }
+    case_2 = {
+        "location_x": 20,
+        "location_y": 30
+    }
+
+    assert incident_spatial_similarity(case_1, case_2) is None
+
+
+def test_incident_spatial_similarity_missing_coordinates_in_second_case():
+    case_1 = {
+        "location_x": 10,
+        "location_y": 20
+    }
+    case_2 = {
+        "location_x": None,
+        "location_y": 30
+    }
+
+    assert incident_spatial_similarity(case_1, case_2) is None
+
+
+def test_equal_weight_similarity_renormalizes_missing_scores():
+    scores = {
+        "behavioral": 1.0,
+        "spatial": None,
+        "temporal": 0.5
+    }
+
+    assert equal_weight_similarity(scores) == 0.75
+
+
+def test_weighted_similarity_with_only_one_available_group():
+    scores = {
+        "behavioral": None,
+        "spatial": 0.8,
+        "temporal": None
+    }
+
+    assert math.isclose(weighted_similarity(scores), 0.8)
